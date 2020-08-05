@@ -41,19 +41,37 @@ The sphere convolution implementation can be divided into 3 steps:
 First step is to get relative offsets of each kernel point to the center point. Suppose the step size on the sphere is Δθ and Δφ, Then the sampling locations on sphere can be defined as:
 
 <div  align="center">    
-<img src="https://github.com/tempsakurai/sphere-conv/blob/master/images/sampling.png" width = 300 />
+<img src="https://github.com/tempsakurai/sphere-conv/blob/master/images/sampling.png" width = 250 />
 </div>
 
 
 Then use gnomonic projection to calculate filter locations on the tangent planes corresponding to these sampling areas:
 <div  align="center">    
-<img src="https://github.com/tempsakurai/sphere-conv/blob/master/images/gnomonic-projection.png" width = 700 />
+<img src="https://github.com/tempsakurai/sphere-conv/blob/master/images/gnomonic-projection.png" width = 600 />
 </div>
 
 Then we get the relative positions to the center point:
 <div  align="center">    
-<img src="https://github.com/tempsakurai/sphere-conv/blob/master/images/kernel-pattern.png" width = 500 />
+<img src="https://github.com/tempsakurai/sphere-conv/blob/master/images/kernel-pattern.png" width = 400 />
 </div>
+
+```python
+[
+    [-tan(d_theta), 1/cos(d_theta)*tan(d_phi)], 
+    [0,             tan(d_phi)], 
+    [tan(d_theta),  1/cos(d_theta)*tan(d_phi)]
+],
+[
+    [-tan(d_theta), 0], 
+    [0.5,         0.5], 
+    [tan(d_theta),  0]
+],
+[
+    [-tan(d_theta), -1/cos(d_theta)*tan(d_phi)], 
+    [0,             -tan(d_phi)], 
+    [tan(d_theta),  -1/cos(d_theta)*tan(d_phi)]
+]
+```
 
 >  Note that the relative position of the center point will not be used because we know the coordinate of center point already. So in the implementation I set the value to (0.5, 0.5) to avoid  *invalid value encountered in true_divide* error.
 
@@ -70,11 +88,11 @@ To compute the corresponding coordinate on sphere, he inverse gnomovic projectio
 where `rho=np.sqrt(x**2+y**2)` and `v=arctan(rho)`
 
 ```python
-    rho = np.sqrt(x**2+y**2)
-    v = arctan(rho)
-    # inverse gnomonic projection
-    phi= arcsin(cos(v) * sin(center_phi) + y * sin(v) * cos(center_phi) / rho)
-    theta = center_theta + arctan(x * sin(v) / (rho * cos(center_phi) * cos(v) - y * sin(center_phi) * sin(v)))
+rho = np.sqrt(x**2+y**2)
+v = arctan(rho)
+# inverse gnomonic projection
+phi= arcsin(cos(v) * sin(center_phi) + y * sin(v) * cos(center_phi) / rho)
+theta = center_theta + arctan(x * sin(v) / (rho * cos(center_phi) * cos(v) - y * sin(center_phi) * sin(v)))
 ```
 
 Then convert radian coordinates (θ, φ) to pixel coordinates (x, y).
@@ -86,9 +104,9 @@ Then convert radian coordinates (θ, φ) to pixel coordinates (x, y).
 For each pixel, we compute a (3, 3, 2) kernel sampling pattern by the above method. The values stored in every sampling pattern is 9 coordinates for filter sampling. The sampling patterns are distorted depending on their locations, and can cross the left and right boundary.
 
 ```python
-    # img_x, img_y: coordinates on equirectangular image
-    img_x = ((theta + pi) * w / pi / 2 - offset) % w  # cross equirectangular image boundary 
-    img_y = (pi / 2 - phi) * h / pi - offset
+# img_x, img_y: coordinates on equirectangular image
+img_x = ((theta + pi) * w / pi / 2 - offset) % w  # cross equirectangular image boundary 
+img_y = (pi / 2 - phi) * h / pi - offset
 ```
 
 <div  align="center">    
