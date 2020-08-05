@@ -1,8 +1,8 @@
-## Visual media report (Miao Cao, IST-ICE, AizawaLab)
+## Visual media report 
 
 This is an implementation of ECCV 2018 paper: SphereNet: Learning Spherical Representations for Detection and Classification in Omnidirectional Images. 
 
-## Main idea
+## Main idea of this paper
 
 This paper proposes SphereNet, a distortion-aware convolutional neural network to achieve better accuracy on omnidirectional images. 
 
